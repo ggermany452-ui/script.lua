@@ -4,6 +4,8 @@ local Window = Rayfield:CreateWindow({
    Name = "Roblox Utility Menu",
    LoadingTitle = "Loading Script...",
    LoadingSubtitle = "by Peer Developer",
+   -- FIXED: Explicitly sizing the window prevents tabs from being cut off on mobile/smaller layouts
+   Size = UDim2.new(0, 550, 0, 330), 
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "RayfieldSpecs",
@@ -11,7 +13,7 @@ local Window = Rayfield:CreateWindow({
    },
    Discord = {
       Enabled = false,
-      Invite = "", -- Using custom copy button instead
+      Invite = "", 
       RememberJoins = true
    },
    KeySystem = false
@@ -20,8 +22,7 @@ local Window = Rayfield:CreateWindow({
 -- ==========================================
 -- TAB 1: PLAYER ESP & DISTANCE
 -- ==========================================
-local Tab1 = Window:CreateTab("Visuals", 4483362458) -- Eye icon ID
-
+local Tab1 = Window:CreateTab("Visuals", 4483362458) 
 local Section1 = Tab1:CreateSection("Player Tracking")
 
 local ESPEnabled = false
@@ -33,12 +34,7 @@ Tab1:CreateToggle({
    Flag = "ESP_Toggle",
    Callback = function(Value)
       ESPEnabled = Value
-      -- Add your ESP logic here using the ESPEnabled variable
-      if ESPEnabled then
-          print("ESP Activated")
-      else
-          print("ESP Deactivated")
-      end
+      if ESPEnabled then print("ESP Activated") else print("ESP Deactivated") end
    end,
 })
 
@@ -48,20 +44,14 @@ Tab1:CreateToggle({
    Flag = "Distance_Toggle",
    Callback = function(Value)
       DistanceEnabled = Value
-      -- Add your distance tracking logic here using the DistanceEnabled variable
-      if DistanceEnabled then
-          print("Distance Tracker Activated")
-      else
-          print("Distance Tracker Deactivated")
-      end
+      if DistanceEnabled then print("Distance Tracker Activated") else print("Distance Tracker Deactivated") end
    end,
 })
 
 -- ==========================================
 -- TAB 2: MOVEMENT SPEED
 -- ==========================================
-local Tab2 = Window:CreateTab("Movement", 4483362748) -- Running icon ID
-
+local Tab2 = Window:CreateTab("Movement", 4483362748) 
 local Section2 = Tab2:CreateSection("Speed Modification")
 
 Tab2:CreateSlider({
@@ -81,8 +71,7 @@ Tab2:CreateSlider({
 -- ==========================================
 -- TAB 3: INFO & DISCORD CORNER
 -- ==========================================
-local Tab3 = Window:CreateTab("Info", 4483362534) -- Info icon ID
-
+local Tab3 = Window:CreateTab("Info", 4483362534) 
 local Section3 = Tab3:CreateSection("About Script")
 
 Tab3:CreateLabel("Script Version: 1.0.0")
@@ -95,30 +84,14 @@ Tab3:CreateButton({
    Callback = function()
       local discordLink = "https://discord.gg/8P8ZuuYcu"
       
-      -- Handles clipboard copying across various executors (Synapse, Krnl, ScriptWare, etc.)
       if setclipboard then
           setclipboard(discordLink)
-          Rayfield:Notify({
-             Name = "Success!",
-             Content = "Discord link copied to clipboard.",
-             Duration = 3,
-             Image = 4483362458,
-          })
+          Rayfield:Notify({ Name = "Success!", Content = "Discord link copied to clipboard.", Duration = 3, Image = 4483362458 })
       elseif toclipboard then
           toclipboard(discordLink)
-          Rayfield:Notify({
-             Name = "Success!",
-             Content = "Discord link copied to clipboard.",
-             Duration = 3,
-             Image = 4483362458,
-          })
+          Rayfield:Notify({ Name = "Success!", Content = "Discord link copied to clipboard.", Duration = 3, Image = 4483362458 })
       else
-          Rayfield:Notify({
-             Name = "Error",
-             Content = "Your executor doesn't support clipboard copying.",
-             Duration = 4,
-             Image = 4483362458,
-          })
+          Rayfield:Notify({ Name = "Error", Content = "Your executor doesn't support clipboard copying.", Duration = 4, Image = 4483362458 })
       end
    end,
 })
