@@ -79,7 +79,7 @@ end
 local Window = Rayfield:CreateWindow({
     Name = "Master Combat & Exploitation Engine",
     LoadingTitle = "Loading System Configuration...",
-    LoadingSubtitle = "All 35+ Modules Pre-Loaded",
+    LoadingSubtitle = "All Modules Pre-Loaded & Categorized",
     ConfigurationSaving = {
         Enabled = false,
         FolderName = "CombatProject",
@@ -94,281 +94,13 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- ==========================================
--- TAB 1: MAIN COMBAT & LOCAL MODIFICATIONS
+-- TAB 1: COMBAT (Elimination Engine)
 -- ==========================================
-local Tab1 = Window:CreateTab("Main", 4483362458)
+local Tab1 = Window:CreateTab("Combat", 4483362458)
 
-Tab1:CreateSection("Local State Overrides")
-
-Tab1:CreateButton({
-    Name = "Force Unlock Attack States",
-    Callback = function()
-        if v_u_116 then
-            v_u_116.CanAttack = true
-            v_u_116.PushDebounce = false
-            v_u_116.CanWeave = false
-            Rayfield:Notify({
-                Title = "State Overridden",
-                Content = "Attack states successfully forced to True.",
-                Duration = 3,
-                Image = 4483362458,
-            })
-        end
-    end,
-})
+Tab1:CreateSection("--- [ MENU: AUTO ELIMINATION ] ---")
 
 Tab1:CreateToggle({
-    Name = "Auto-Clear Stuns / Busy Flags",
-    CurrentValue = false,
-    Flag = "StunClearToggle",
-    Callback = function(Value)
-        _G.ClearStuns = Value
-        task.spawn(function()
-            while _G.ClearStuns do
-                local myChar = LocalPlayer.Character or v_u_7
-                if myChar then
-                    local stun = myChar:FindFirstChild("Stun") or myChar:FindFirstChild("BUSY")
-                    if stun then stun:Destroy() end
-                    myChar:SetAttribute("HitStun", false)
-                end
-                task.wait(0.1)
-            end
-        end)
-    end,
-})
-
-Tab1:CreateSection("Physique & Movement Modifiers")
-
--- 1. WalkSpeed Changer
-Tab1:CreateSlider({
-    Name = "WalkSpeed Modifier", Min = 16, Max = 250, DefaultValue = 16, Increment = 1, ValueName = "Speed", Flag = "SpeedSlider",
-    Callback = function(V) 
-        WalkSpeedValue = V 
-        local c = LocalPlayer.Character or v_u_7 
-        if c and c:FindFirstChild("Humanoid") then c.Humanoid.WalkSpeed = V end 
-    end
-})
-
--- 2. JumpPower Changer
-Tab1:CreateSlider({
-    Name = "JumpPower Modifier", Min = 50, Max = 500, DefaultValue = 50, Increment = 5, ValueName = "Power", Flag = "JumpSlider",
-    Callback = function(V) 
-        JumpPowerValue = V 
-        local c = LocalPlayer.Character or v_u_7 
-        if c and c:FindFirstChild("Humanoid") then c.Humanoid.JumpPower = V c.Humanoid.UseJumpPower = true end 
-    end
-})
-
--- 3. Infinite Jump Toggle
-Tab1:CreateToggle({
-    Name = "Infinite Jump Engine", CurrentValue = false, Flag = "InfJump",
-    Callback = function(V) 
-        InfiniteJumpEnabled = V 
-        game:GetService("UserInputService").JumpRequest:Connect(function() 
-            if InfiniteJumpEnabled then 
-                local c = LocalPlayer.Character or v_u_7 
-                if c and c:FindFirstChildOfClass("Humanoid") then c:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end 
-            end 
-        end) 
-    end
-})
-
--- 4. No-Clip Environment Override
-Tab1:CreateToggle({
-    Name = "Noclip Active", CurrentValue = false, Flag = "Noclip",
-    Callback = function(V) 
-        NoclipEnabled = V 
-        game:GetService("RunService").Stepped:Connect(function() 
-            if NoclipEnabled then 
-                local c = LocalPlayer.Character or v_u_7 
-                if c then for _, part in ipairs(c:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end end 
-            end 
-        end) 
-    end
-})
-
--- 5. Anti-Ragdoll Hook
-Tab1:CreateButton({
-    Name = "Force Disable Ragdoll States",
-    Callback = function() 
-        local c = LocalPlayer.Character or v_u_7 
-        if c then local r = c:FindFirstChild("Ragdoll") or c:FindFirstChild("RagdollTrigger") if r then r:Destroy() end end 
-    end
-})
-
--- 6. Instant Respawn Wrapper
-Tab1:CreateButton({
-    Name = "Instant Self-Reset (Fast Respawn)",
-    Callback = function() 
-        local c = LocalPlayer.Character or v_u_7 
-        if c and c:FindFirstChild("Humanoid") then c.Humanoid.Health = 0 end 
-    end
-})
-
--- 7. Anti-Fling Alignment Lock
-Tab1:CreateToggle({
-    Name = "Anti-Fling Structural Lock", CurrentValue = false, Flag = "AntiFling",
-    Callback = function(V) 
-        game:GetService("RunService").Heartbeat:Connect(function() 
-            if V then 
-                local c = LocalPlayer.Character or v_u_7 
-                if c then for _, p in ipairs(c:GetDescendants()) do if p:IsA("BasePart") then p.Velocity = Vector3.new(0,0,0) p.RotVelocity = Vector3.new(0,0,0) end end end 
-            end 
-        end) 
-    end
-})
-
--- 8. Godmode Packet Bypasser
-Tab1:CreateButton({
-    Name = "Attempt Desync Godmode",
-    Callback = function() 
-        local c = LocalPlayer.Character or v_u_7 
-        if c and c:FindFirstChild("Humanoid") then local clone = c.Humanoid:Clone() c.Humanoid:Destroy() clone.Parent = c end 
-    end
-})
-
--- ==========================================
--- TAB 2: VISUALS & SCENE RENDERING
--- ==========================================
-local Tab2 = Window:CreateTab("Visuals", 4483362458)
-
-Tab2:CreateSection("Environment Helpers")
-
-local OriginalAmbient = Lighting.Ambient
-local OriginalOutdoorAmbient = Lighting.OutdoorAmbient
-
-Tab2:CreateToggle({
-    Name = "Fullbright",
-    CurrentValue = false,
-    Flag = "FullbrightToggle",
-    Callback = function(Value)
-        FullbrightEnabled = Value
-        if FullbrightEnabled then
-            task.spawn(function()
-                while FullbrightEnabled do
-                    Lighting.Ambient = Color3.fromRGB(255, 255, 255)
-                    Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
-                    Lighting.Brightness = 2
-                    task.wait(0.5)
-                end
-            end)
-        else
-            Lighting.Ambient = OriginalAmbient
-            Lighting.OutdoorAmbient = OriginalOutdoorAmbient
-            Lighting.Brightness = 1
-        end
-    end,
-})
-
-Tab2:CreateToggle({
-    Name = "Entity / Player ESP",
-    CurrentValue = false,
-    Flag = "EspToggle",
-    Callback = function(Value)
-        EspEnabled = Value
-        
-        local function applyESP(player)
-            if player == LocalPlayer then return end
-            player.CharacterAdded:Connect(function(char)
-                if not EspEnabled then return end
-                task.wait(0.5)
-                if not char:FindFirstChild("ESPHighlight") then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Name = "ESPHighlight"
-                    highlight.FillColor = Color3.fromRGB(255, 75, 75)
-                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    highlight.Parent = char
-                end
-            end)
-            
-            if player.Character and not player.Character:FindFirstChild("ESPHighlight") then
-                local highlight = Instance.new("Highlight")
-                highlight.Name = "ESPHighlight"
-                highlight.FillColor = Color3.fromRGB(255, 75, 75)
-                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                highlight.Parent = player.Character
-            end
-        end
-
-        if EspEnabled then
-            for _, player in ipairs(Players:GetPlayers()) do
-                applyESP(player)
-            end
-            _G.PlayerAddedConnection = Players.PlayerAdded:Connect(applyESP)
-        else
-            if _G.PlayerAddedConnection then 
-                _G.PlayerAddedConnection:Disconnect() 
-            end
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player.Character and player.Character:FindFirstChild("ESPHighlight") then
-                    player.Character.ESPHighlight:Destroy()
-                end
-            end
-        end
-    end,
-})
-
-Tab2:CreateSection("Advanced Camera & Ambience")
-
--- 9. Field of View Configurator
-Tab2:CreateSlider({
-    Name = "Render FOV", Min = 70, Max = 120, DefaultValue = 70, Increment = 1, ValueName = "Degrees", Flag = "FovSlider",
-    Callback = function(V) workspace.CurrentCamera.FieldOfView = V end
-})
-
--- 10. Instant Shadow Stripper
-Tab2:CreateToggle({
-    Name = "Disable Global Shadows", CurrentValue = false, Flag = "ShadowsToggle",
-    Callback = function(V) game:GetService("Lighting").GlobalShadows = not V end
-})
-
--- 11. Fog Removal Engine
-Tab2:CreateButton({
-    Name = "Clear Atmosphere / Fog",
-    Callback = function() 
-        game:GetService("Lighting").FogEnd = 999999 
-        if game:GetService("Lighting"):FindFirstChildOfClass("Atmosphere") then game:GetService("Lighting"):FindFirstChildOfClass("Atmosphere"):Destroy() end 
-    end
-})
-
--- 12. Tracer Visualizer System Placeholder Verification
-Tab2:CreateToggle({
-    Name = "Display Screen Tracers", CurrentValue = false, Flag = "Tracers",
-    Callback = function(V) _G.TracersActive = V end
-})
-
--- 13. Nameplates ESP
-Tab2:CreateToggle({
-    Name = "Force Render Player Tag Overheads", CurrentValue = false, Flag = "TagEsp",
-    Callback = function(V) 
-        for _, p in ipairs(Players:GetPlayers()) do 
-            if p.Character and p.Character:FindFirstChild("Head") and V then 
-                if not p.Character.Head:FindFirstChild("EspTag") then
-                    local b = Instance.new("BillboardGui", p.Character.Head) b.Name = "EspTag" b.Size = UDim2.new(0,200,0,50) b.AlwaysOnTop = true
-                    local l = Instance.new("TextLabel", b) l.Size = UDim2.new(1,0,1,0) l.Text = p.Name l.TextColor3 = Color3.new(1,1,1) l.BackgroundTransparency = 1
-                end
-            else 
-                if p.Character and p.Character.Head:FindFirstChild("EspTag") then p.Character.Head.EspTag:Destroy() end 
-            end 
-        end 
-    end
-})
-
--- 14. Custom Time Changer
-Tab2:CreateSlider({
-    Name = "Force World Time (Hours)", Min = 0, Max = 24, DefaultValue = 12, Increment = 1, ValueName = "Clock Hours", Flag = "TimeSlider",
-    Callback = function(V) game:GetService("Lighting").ClockTime = V end
-})
-
-
--- ==========================================
--- TAB 3: KNOCK (Optimized Elimination Engine)
--- ==========================================
-local Tab3 = Window:CreateTab("Knock", 4483362458)
-
-Tab3:CreateSection("Automated Combat Operations")
-
-Tab3:CreateToggle({
     Name = "Aggressive Elimination Aura",
     CurrentValue = false,
     Flag = "PunchAuraToggle",
@@ -420,22 +152,21 @@ Tab3:CreateToggle({
     end,
 })
 
-Tab3:CreateSection("Combat Range & Speed Configurations")
+Tab1:CreateSection("--- [ MENU: AURA CONFIG ] ---")
 
-Tab3:CreateSlider({
+Tab1:CreateSlider({
     Name = "Aura Reach Distance", Min = 10, Max = 100, DefaultValue = 50, Color = Color3.fromRGB(255, 75, 75), Increment = 5, ValueName = "Studs", Flag = "AuraRangeSlider",
     Callback = function(Value) AURA_RADIUS = Value end,
 })
 
-Tab3:CreateSlider({
+Tab1:CreateSlider({
     Name = "Attack Rate (Speed)", Min = 0.05, Max = 1.0, DefaultValue = 0.15, Color = Color3.fromRGB(75, 175, 255), Increment = 0.05, ValueName = "Seconds", Flag = "AttackSpeedSlider",
     Callback = function(Value) ATTACK_COOLDOWN = Value end,
 })
 
-Tab3:CreateSection("Combat Enhancement Modifications")
+Tab1:CreateSection("--- [ MENU: HITBOX EXTENSION ] ---")
 
--- 15. Hitbox Extender (Reach)
-Tab3:CreateToggle({
+Tab1:CreateToggle({
     Name = "Extend Target Hitboxes", CurrentValue = false, Flag = "ExtendBoxes",
     Callback = function(V) 
         HitboxExtendEnabled = V 
@@ -452,14 +183,240 @@ Tab3:CreateToggle({
     end
 })
 
--- 16. Reach Radius Value Configuration
-Tab3:CreateSlider({
+Tab1:CreateSlider({
     Name = "Hitbox Target Scale", Min = 2, Max = 30, DefaultValue = 2, Increment = 1, ValueName = "Size studs", Flag = "SizeScale",
     Callback = function(V) HitboxSizeValue = V end
 })
 
--- 17. Teleport Auto-Farm Wrapper
+
+-- ==========================================
+-- TAB 2: MOVEMENT (Local Character Modifiers)
+-- ==========================================
+local Tab2 = Window:CreateTab("Movement", 4483362458)
+
+Tab2:CreateSection("--- [ MENU: SPEED & PHYSICALS ] ---")
+
+Tab2:CreateSlider({
+    Name = "WalkSpeed Modifier", Min = 16, Max = 250, DefaultValue = 16, Increment = 1, ValueName = "Speed", Flag = "SpeedSlider",
+    Callback = function(V) 
+        WalkSpeedValue = V 
+        local c = LocalPlayer.Character or v_u_7 
+        if c and c:FindFirstChild("Humanoid") then c.Humanoid.WalkSpeed = V end 
+    end
+})
+
+Tab2:CreateSlider({
+    Name = "JumpPower Modifier", Min = 50, Max = 500, DefaultValue = 50, Increment = 5, ValueName = "Power", Flag = "JumpSlider",
+    Callback = function(V) 
+        JumpPowerValue = V 
+        local c = LocalPlayer.Character or v_u_7 
+        if c and c:FindFirstChild("Humanoid") then c.Humanoid.JumpPower = V c.Humanoid.UseJumpPower = true end 
+    end
+})
+
+Tab2:CreateSection("--- [ MENU: ENVIRONMENT NAVIGATION ] ---")
+
+Tab2:CreateToggle({
+    Name = "Infinite Jump Engine", CurrentValue = false, Flag = "InfJump",
+    Callback = function(V) 
+        InfiniteJumpEnabled = V 
+        game:GetService("UserInputService").JumpRequest:Connect(function() 
+            if InfiniteJumpEnabled then 
+                local c = LocalPlayer.Character or v_u_7 
+                if c and c:FindFirstChildOfClass("Humanoid") then c:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end 
+            end 
+        end) 
+    end
+})
+
+Tab2:CreateToggle({
+    Name = "Noclip Active", CurrentValue = false, Flag = "Noclip",
+    Callback = function(V) 
+        NoclipEnabled = V 
+        game:GetService("RunService").Stepped:Connect(function() 
+            if NoclipEnabled then 
+                local c = LocalPlayer.Character or v_u_7 
+                if c then for _, part in ipairs(c:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end end 
+            end 
+        end) 
+    end
+})
+
+
+-- ==========================================
+-- TAB 3: VISUALS (Render Hooks)
+-- ==========================================
+local Tab3 = Window:CreateTab("Visuals", 4483362458)
+
+Tab3:CreateSection("--- [ MENU: RENDERING & ESP ] ---")
+
 Tab3:CreateToggle({
+    Name = "Entity / Player ESP",
+    CurrentValue = false,
+    Flag = "EspToggle",
+    Callback = function(Value)
+        EspEnabled = Value
+        
+        local function applyESP(player)
+            if player == LocalPlayer then return end
+            player.CharacterAdded:Connect(function(char)
+                if not EspEnabled then return end
+                task.wait(0.5)
+                if not char:FindFirstChild("ESPHighlight") then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Name = "ESPHighlight"
+                    highlight.FillColor = Color3.fromRGB(255, 75, 75)
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    highlight.Parent = char
+                end
+            end)
+            
+            if player.Character and not player.Character:FindFirstChild("ESPHighlight") then
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "ESPHighlight"
+                highlight.FillColor = Color3.fromRGB(255, 75, 75)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Parent = player.Character
+            end
+        end
+
+        if EspEnabled then
+            for _, player in ipairs(Players:GetPlayers()) do
+                applyESP(player)
+            end
+            _G.PlayerAddedConnection = Players.PlayerAdded:Connect(applyESP)
+        else
+            if _G.PlayerAddedConnection then 
+                _G.PlayerAddedConnection:Disconnect() 
+            end
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("ESPHighlight") then
+                    player.Character.ESPHighlight:Destroy()
+                end
+            end
+        end
+    end,
+})
+
+Tab3:CreateToggle({
+    Name = "Force Render Player Tag Overheads", CurrentValue = false, Flag = "TagEsp",
+    Callback = function(V) 
+        for _, p in ipairs(Players:GetPlayers()) do 
+            if p.Character and p.Character:FindFirstChild("Head") and V then 
+                if not p.Character.Head:FindFirstChild("EspTag") then
+                    local b = Instance.new("BillboardGui", p.Character.Head) b.Name = "EspTag" b.Size = UDim2.new(0,200,0,50) b.AlwaysOnTop = true
+                    local l = Instance.new("TextLabel", b) l.Size = UDim2.new(1,0,1,0) l.Text = p.Name l.TextColor3 = Color3.new(1,1,1) l.BackgroundTransparency = 1
+                end
+            else 
+                if p.Character and p.Character.Head:FindFirstChild("EspTag") then p.Character.Head.EspTag:Destroy() end 
+            end 
+        end 
+    end
+})
+
+Tab3:CreateToggle({
+    Name = "Display Screen Tracers", CurrentValue = false, Flag = "Tracers",
+    Callback = function(V) _G.TracersActive = V end
+})
+
+Tab3:CreateSection("--- [ MENU: ATMOSPHERE CONTROLS ] ---")
+
+local OriginalAmbient = Lighting.Ambient
+local OriginalOutdoorAmbient = Lighting.OutdoorAmbient
+
+Tab3:CreateToggle({
+    Name = "Fullbright", CurrentValue = false, Flag = "FullbrightToggle",
+    Callback = function(Value)
+        FullbrightEnabled = Value
+        if FullbrightEnabled then
+            task.spawn(function()
+                while FullbrightEnabled do
+                    Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+                    Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+                    Lighting.Brightness = 2
+                    task.wait(0.5)
+                end
+            end)
+        else
+            Lighting.Ambient = OriginalAmbient
+            Lighting.OutdoorAmbient = OriginalOutdoorAmbient
+            Lighting.Brightness = 1
+        end
+    end,
+})
+
+Tab3:CreateSlider({
+    Name = "Render FOV", Min = 70, Max = 120, DefaultValue = 70, Increment = 1, ValueName = "Degrees", Flag = "FovSlider",
+    Callback = function(V) workspace.CurrentCamera.FieldOfView = V end
+})
+
+Tab3:CreateToggle({
+    Name = "Disable Global Shadows", CurrentValue = false, Flag = "ShadowsToggle",
+    Callback = function(V) game:GetService("Lighting").GlobalShadows = not V end
+})
+
+Tab3:CreateButton({
+    Name = "Clear Atmosphere / Fog",
+    Callback = function() 
+        game:GetService("Lighting").FogEnd = 999999 
+        if game:GetService("Lighting"):FindFirstChildOfClass("Atmosphere") then game:GetService("Lighting"):FindFirstChildOfClass("Atmosphere"):Destroy() end 
+    end
+})
+
+Tab3:CreateSlider({
+    Name = "Force World Time (Hours)", Min = 0, Max = 24, DefaultValue = 12, Increment = 1, ValueName = "Clock Hours", Flag = "TimeSlider",
+    Callback = function(V) game:GetService("Lighting").ClockTime = V end
+})
+
+
+-- ==========================================
+-- TAB 4: AUTOMATION (Farms & Status Bypass)
+-- ==========================================
+local Tab4 = Window:CreateTab("Automation", 4483362458)
+
+Tab4:CreateSection("--- [ MENU: BYPASS CODES ] ---")
+
+Tab4:CreateButton({
+    Name = "Force Unlock Attack States",
+    Callback = function()
+        if v_u_116 then
+            v_u_116.CanAttack = true
+            v_u_116.PushDebounce = false
+            v_u_116.CanWeave = false
+            Rayfield:Notify({Title = "State Overridden", Content = "Attack states successfully forced to True.", Duration = 3})
+        end
+    end,
+})
+
+Tab4:CreateToggle({
+    Name = "Auto-Clear Stuns / Busy Flags", CurrentValue = false, Flag = "StunClearToggle",
+    Callback = function(Value)
+        _G.ClearStuns = Value
+        task.spawn(function()
+            while _G.ClearStuns do
+                local myChar = LocalPlayer.Character or v_u_7
+                if myChar then
+                    local stun = myChar:FindFirstChild("Stun") or myChar:FindFirstChild("BUSY")
+                    if stun then stun:Destroy() end
+                    myChar:SetAttribute("HitStun", false)
+                end
+                task.wait(0.1)
+            end
+        end)
+    end,
+})
+
+Tab4:CreateButton({
+    Name = "Force Disable Ragdoll States",
+    Callback = function() 
+        local c = LocalPlayer.Character or v_u_7 
+        if c then local r = c:FindFirstChild("Ragdoll") or c:FindFirstChild("RagdollTrigger") if r then r:Destroy() end end 
+    end
+})
+
+Tab4:CreateSection("--- [ MENU: EXPLOITATIVE LOOPS ] ---")
+
+Tab4:CreateToggle({
     Name = "Behind-Target Teleport Loop", CurrentValue = false, Flag = "FarmLoop",
     Callback = function(V) 
         AutoFarmEnabled = V 
@@ -475,8 +432,7 @@ Tab3:CreateToggle({
     end
 })
 
--- 18. Spinbot Anti-Aim
-Tab3:CreateToggle({
+Tab4:CreateToggle({
     Name = "Enable Spinbot Matrix", CurrentValue = false, Flag = "Spin",
     Callback = function(V) 
         SpinBotEnabled = V 
@@ -492,16 +448,14 @@ Tab3:CreateToggle({
 
 
 -- ==========================================
--- TAB 4: EXPLOITS (Invisibility & Teleport Tool)
+-- TAB 5: TELEPORTATION (Exploits & Mechanics)
 -- ==========================================
-local Tab4 = Window:CreateTab("Exploits", 4483362458)
+local Tab5 = Window:CreateTab("Teleportation", 4483362458)
 
-Tab4:CreateSection("Character Modifiers")
+Tab5:CreateSection("--- [ MENU: UTILITIES ] ---")
 
-Tab4:CreateToggle({
-    Name = "Invisible Character Mode",
-    CurrentValue = false,
-    Flag = "InvisibilityToggle",
+Tab5:CreateToggle({
+    Name = "Invisible Character Mode", CurrentValue = false, Flag = "InvisibilityToggle",
     Callback = function(Value)
         InvisibleEnabled = Value
         local char = LocalPlayer.Character or v_u_7
@@ -513,23 +467,18 @@ Tab4:CreateToggle({
                 if updatedChar then
                     for _, part in ipairs(updatedChar:GetDescendants()) do
                         if part:IsA("BasePart") or part:IsA("Decal") then
-                            if part.Name ~= "HumanoidRootPart" then
-                                part.Transparency = 1
-                            end
+                            if part.Name ~= "HumanoidRootPart" then part.Transparency = 1 end
                         end
                     end
                 end
                 task.wait(0.5)
             end
-            
             if not InvisibleEnabled then
                 local resetChar = LocalPlayer.Character or v_u_7
                 if resetChar then
                     for _, part in ipairs(resetChar:GetDescendants()) do
                         if part:IsA("BasePart") or part:IsA("Decal") then
-                            if part.Name ~= "HumanoidRootPart" then
-                                part.Transparency = 0
-                            end
+                            if part.Name ~= "HumanoidRootPart" then part.Transparency = 0 end
                         end
                     end
                 end
@@ -538,21 +487,15 @@ Tab4:CreateToggle({
     end,
 })
 
-Tab4:CreateSection("Map Traversal Utilities")
-
-Tab4:CreateToggle({
-    Name = "Enable Click Teleport Tool",
-    CurrentValue = false,
-    Flag = "TPToolToggle",
+Tab5:CreateToggle({
+    Name = "Enable Click Teleport Tool", CurrentValue = false, Flag = "TPToolToggle",
     Callback = function(Value)
         TeleportToolEnabled = Value
-        
         if TeleportToolEnabled then
             local tpTool = Instance.new("Tool")
             tpTool.Name = "Click Teleport"
             tpTool.RequiresHandle = false
             tpTool.Parent = LocalPlayer.Backpack
-
             tpTool.Activated:Connect(function()
                 local mouse = LocalPlayer:GetMouse()
                 local char = LocalPlayer.Character or v_u_7
@@ -560,35 +503,59 @@ Tab4:CreateToggle({
                     char.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
                 end
             end)
-            
             _G.ActiveTPTool = tpTool
         else
-            if _G.ActiveTPTool then
-                _G.ActiveTPTool:Destroy()
-                _G.ActiveTPTool = nil
-            end
+            if _G.ActiveTPTool then _G.ActiveTPTool:Destroy() _G.ActiveTPTool = nil end
             local oldTool = LocalPlayer.Backpack:FindFirstChild("Click Teleport") or (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Click Teleport"))
             if oldTool then oldTool:Destroy() end
         end
     end,
 })
 
+Tab5:CreateSection("--- [ MENU: DESYNC DEFENSE ] ---")
+
+Tab5:CreateToggle({
+    Name = "Anti-Fling Structural Lock", CurrentValue = false, Flag = "AntiFling",
+    Callback = function(V) 
+        game:GetService("RunService").Heartbeat:Connect(function() 
+            if V then 
+                local c = LocalPlayer.Character or v_u_7 
+                if c then for _, p in ipairs(c:GetDescendants()) do if p:IsA("BasePart") then p.Velocity = Vector3.new(0,0,0) p.RotVelocity = Vector3.new(0,0,0) end end end 
+            end 
+        end) 
+    end
+})
+
+Tab5:CreateButton({
+    Name = "Attempt Desync Godmode",
+    Callback = function() 
+        local c = LocalPlayer.Character or v_u_7 
+        if c and c:FindFirstChild("Humanoid") then local clone = c.Humanoid:Clone() c.Humanoid:Destroy() clone.Parent = c end 
+    end
+})
+
+Tab5:CreateButton({
+    Name = "Instant Self-Reset (Fast Respawn)",
+    Callback = function() 
+        local c = LocalPlayer.Character or v_u_7 
+        if c and c:FindFirstChild("Humanoid") then c.Humanoid.Health = 0 end 
+    end
+})
+
 
 -- ==========================================
--- TAB 5: UTILITIES (Server Automation Modules)
+-- TAB 6: UTILITIES (Server & Target Profilers)
 -- ==========================================
-local Tab5 = Window:CreateTab("Utilities", 4483362458)
+local Tab6 = Window:CreateTab("Utilities", 4483362458)
 
-Tab5:CreateSection("Target Management Hooks")
+Tab6:CreateSection("--- [ MENU: TARGETING SYSTEMS ] ---")
 
--- 19. Target Input Field
-Tab5:CreateInput({
+Tab6:CreateInput({
     Name = "Input Target Username", PlaceholderText = "Username here...", RemoveTextAfterFocusLost = false, Flag = "PlayerInput",
     Callback = function(Text) TargetPlayerName = Text end
 })
 
--- 20. Target Teleporter Button
-Tab5:CreateButton({
+Tab6:CreateButton({
     Name = "Teleport onto Target",
     Callback = function() 
         for _, p in ipairs(Players:GetPlayers()) do 
@@ -602,8 +569,7 @@ Tab5:CreateButton({
     end
 })
 
--- 21. Target Spectate Camera Lock
-Tab5:CreateToggle({
+Tab6:CreateToggle({
     Name = "View Target Camera", CurrentValue = false, Flag = "SpectateToggle",
     Callback = function(V) 
         ViewTargetEnabled = V 
@@ -619,10 +585,33 @@ Tab5:CreateToggle({
     end
 })
 
-Tab5:CreateSection("Server Interactivity Functions")
+Tab6:CreateSection("--- [ MENU: WORLD & NET ENGINE ] ---")
 
--- 22. Server Chat Spammer Toggle
-Tab5:CreateToggle({
+Tab6:CreateSlider({
+    Name = "Workspace Gravity Alteration", Min = 0, Max = 500, DefaultValue = 196.2, Increment = 10, ValueName = "Gravity", Flag = "GravSlider",
+    Callback = function(V) workspace.Gravity = V end
+})
+
+Tab6:CreateToggle({
+    Name = "Lag Switch Simulation", CurrentValue = false, Flag = "LagToggle",
+    Callback = function(V) settings().Network.IncomingReplicationLag = V and 1000 or 0 end
+})
+
+Tab6:CreateButton({
+    Name = "Spawn Emergency Baseplate Escape",
+    Callback = function() 
+        local b = Instance.new("Part", workspace) b.Size = Vector3.new(100, 1, 100) b.Position = (LocalPlayer.Character or v_u_7).HumanoidRootPart.Position - Vector3.new(0, 5, 0) b.Anchored = true b.Material = Enum.Material.SmoothPlastic b.Color = Color3.fromRGB(50,50,50) 
+    end
+})
+
+Tab6:CreateButton({
+    Name = "Wipe Map Seats (Anti-Seat Trap)",
+    Callback = function() for _, v in ipairs(workspace:GetDescendants()) do if v:IsA("Seat") or v:IsA("VehicleSeat") then v:Destroy() end end end
+})
+
+Tab6:CreateSection("--- [ MENU: CHAT INTERACTION ] ---")
+
+Tab6:CreateToggle({
     Name = "Auto Chat Spammer", CurrentValue = false, Flag = "ChatSpam",
     Callback = function(V) 
         ChatSpamEnabled = V 
@@ -638,26 +627,19 @@ Tab5:CreateToggle({
     end
 })
 
--- 23. Custom Spammer String Input
-Tab5:CreateInput({
+Tab6:CreateInput({
     Name = "Chat Content String", PlaceholderText = "Spam context...", RemoveTextAfterFocusLost = false, Flag = "SpamString",
     Callback = function(Text) ChatSpamMessage = Text end
 })
 
--- 24. Low Network Sim (Lag Switch)
-Tab5:CreateToggle({
-    Name = "Lag Switch Simulation", CurrentValue = false, Flag = "LagToggle",
-    Callback = function(V) settings().Network.IncomingReplicationLag = V and 1000 or 0 end
-})
+Tab6:CreateSection("--- [ MENU: CONTROL PANEL ] ---")
 
--- 25. Rejoin Instance Hook
-Tab5:CreateButton({
+Tab6:CreateButton({
     Name = "Rejoin Active Server",
     Callback = function() game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end
 })
 
--- 26. Server Hop Linker
-Tab5:CreateButton({
+Tab6:CreateButton({
     Name = "Hop to a Different Server Instance",
     Callback = function() 
         local sf = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")) 
@@ -669,30 +651,7 @@ Tab5:CreateButton({
     end
 })
 
-Tab5:CreateSection("Physics Engine Modification")
-
--- 27. Gravity Controller
-Tab5:CreateSlider({
-    Name = "Workspace Gravity Alteration", Min = 0, Max = 500, DefaultValue = 196.2, Increment = 10, ValueName = "Gravity", Flag = "GravSlider",
-    Callback = function(V) workspace.Gravity = V end
-})
-
--- 28. Baseplate Spawn Utility
-Tab5:CreateButton({
-    Name = "Spawn Emergency Baseplate Escape",
-    Callback = function() 
-        local b = Instance.new("Part", workspace) b.Size = Vector3.new(100, 1, 100) b.Position = (LocalPlayer.Character or v_u_7).HumanoidRootPart.Position - Vector3.new(0, 5, 0) b.Anchored = true b.Material = Enum.Material.SmoothPlastic b.Color = Color3.fromRGB(50,50,50) 
-    end
-})
-
--- 29. Instant Seat Anchor Deletion
-Tab5:CreateButton({
-    Name = "Wipe Map Seats (Anti-Seat Trap)",
-    Callback = function() for _, v in ipairs(workspace:GetDescendants()) do if v:IsA("Seat") or v:IsA("VehicleSeat") then v:Destroy() end end end
-})
-
--- 30. Script Interface KillSwitch
-Tab5:CreateButton({
+Tab6:CreateButton({
     Name = "Destroy Script Overlay",
     Callback = function() Rayfield:Destroy() end
 })
