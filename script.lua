@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Horror Game Helper",
+   Name = "Horror & Fight Helper",
    LoadingTitle = "Loading Systems...",
    LoadingSubtitle = "by Gemini",
    ConfigurationSaving = {
@@ -172,9 +172,59 @@ PlayerTab:CreateToggle({
 })
 
 
+-- ==================== TAB 3: KNOCK HACKS ====================
+local KnockTab = Window:CreateTab("Knock", nil)
+
+KnockTab:CreateButton({
+   Name = "Punch All (30 Studs)",
+   Callback = function()
+      local character = LocalPlayer.Character
+      if not character then return end
+      
+      local rootPart = character:FindFirstChild("HumanoidRootPart")
+      local tool = character:FindFirstChildOfClass("Tool") -- چەک یان دەستی لێدانەکە دەدۆزێتەوە کە بەکارخراوە
+      
+      if not tool then
+          Rayfield:Notify({
+             Title = "تێبینی",
+             Content = "سەرەتا دەست یان چەکەکەت (Tool) بەکاربهێنە لە ناو دەستتدا بێت!",
+             Duration = 3
+          })
+          return
+      end
+      
+      if rootPart then
+          for _, player in ipairs(Players:GetPlayers()) do
+              if player ~= LocalPlayer and player.Character then
+                  local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+                  local targetHumanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                  
+                  -- پشکنین بۆ ئەوەی بزانێت یاریزانەکە لە مەودای ٣٠ ستەدس دایە و نەمردووە
+                  if targetRoot and targetHumanoid and targetHumanoid.Health > 0 then
+                      local distance = (rootPart.Position - targetRoot.Position).Magnitude
+                      if distance <= 30 then
+                          -- چالاککردنی لێدانەکە لەسەر یاریزانەکە
+                          tool:Activate()
+                          if tool:FindFirstChild("RemoteEvent") then
+                              tool.RemoteEvent:FireServer(player.Character)
+                          elseif tool:FindFirstChild("Hit") then
+                              tool.Hit:FireServer(player.Character)
+                          end
+                          -- گواستنەوەی کاتی لێدان بۆ شوێنی یاریزانەکە
+                          firetouchinterest(targetRoot, tool.Handle, 0)
+                          task.wait()
+                          firetouchinterest(targetRoot, tool.Handle, 1)
+                      end
+                  end
+              end
+          end
+      end
+   end,
+})
+
 Rayfield:Notify({
    Title = "Updated Successfully!",
-   Content = "Tab 2 (Player) has been added to your script.",
+   Content = "Tab 3 (Knock) has been added to your script.",
    Duration = 5,
    Image = nil,
 })
