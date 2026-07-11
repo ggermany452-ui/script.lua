@@ -4,8 +4,7 @@ local Window = Rayfield:CreateWindow({
    Name = "Roblox Utility Menu",
    LoadingTitle = "Loading Script...",
    LoadingSubtitle = "by Peer Developer",
-   -- FIXED: Explicitly sizing the window prevents tabs from being cut off on mobile/smaller layouts
-   Size = UDim2.new(0, 550, 0, 330), 
+   Size = UDim2.new(0, 550, 0, 330), -- Keeps UI sized properly for mobile screen layouts
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "RayfieldSpecs",
@@ -49,37 +48,17 @@ Tab1:CreateToggle({
 })
 
 -- ==========================================
--- TAB 2: MOVEMENT SPEED
+-- TAB 2: INFO & DISCORD (Moved up from Tab 3)
 -- ==========================================
-local Tab2 = Window:CreateTab("Movement", 4483362748) 
-local Section2 = Tab2:CreateSection("Speed Modification")
+local Tab2 = Window:CreateTab("Info", 4483362534) 
+local Section2 = Tab2:CreateSection("About Script")
 
-Tab2:CreateSlider({
-   Name = "WalkSpeed Multiplier",
-   Min = 1,
-   Max = 230,
-   CurrentValue = 16,
-   Flag = "Speed_Slider",
-   Callback = function(Value)
-      local LocalPlayer = game:GetService("Players").LocalPlayer
-      if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-          LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
-      end
-   end,
-})
+Tab2:CreateLabel("Script Version: 1.0.0")
+Tab2:CreateLabel("Status: Operational")
 
--- ==========================================
--- TAB 3: INFO & DISCORD CORNER
--- ==========================================
-local Tab3 = Window:CreateTab("Info", 4483362534) 
-local Section3 = Tab3:CreateSection("About Script")
+local SectionDiscord = Tab2:CreateSection("Community")
 
-Tab3:CreateLabel("Script Version: 1.0.0")
-Tab3:CreateLabel("Status: Operational")
-
-local SectionDiscord = Tab3:CreateSection("Community")
-
-Tab3:CreateButton({
+Tab2:CreateButton({
    Name = "Copy Discord Link",
    Callback = function()
       local discordLink = "https://discord.gg/8P8ZuuYcu"
