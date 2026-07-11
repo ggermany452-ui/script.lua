@@ -16,12 +16,14 @@ local Window = Rayfield:CreateWindow({
 -- State management
 local FullbrightEnabled = false
 local MonsterESPEnabled = false
+local InfJumpEnabled = false
 local HighlightsTable = {}
 
 -- Services
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Backup original lighting settings to restore later
@@ -94,7 +96,18 @@ workspace.ChildAdded:Connect(function(child)
     end
 end)
 
--- Main Tab UI
+-- Infinite Jump Logic
+UserInputService.JumpRequest:Connect(function()
+    if InfJumpEnabled and LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+
+-- ==================== TAB 1: MAIN HACKS ====================
 local MainTab = Window:CreateTab("Main Hacks", nil)
 
 MainTab:CreateToggle({
@@ -104,7 +117,6 @@ MainTab:CreateToggle({
    Callback = function(Value)
       FullbrightEnabled = Value
       if not Value then
-          -- Restore original ambiance when turned off
           Lighting.Ambient = origAmbient
           Lighting.OutdoorAmbient = origOutdoorAmbient
           Lighting.Brightness = origBrightness
@@ -132,9 +144,37 @@ MainTab:CreateToggle({
    end,
 })
 
+
+-- ==================== TAB 2: PLAYER HACKS ====================
+local PlayerTab = Window:CreateTab("Player", nil)
+
+PlayerTab:CreateSlider({
+   Name = "WalkSpeed (خێرایی)",
+   Range = {1, 230},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "SpeedSlider",
+   Callback = function(Value)
+      if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+          LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+      end
+   end,
+})
+
+PlayerTab:CreateToggle({
+   Name = "Infinite Jump (بازدانی بێپایان)",
+   CurrentValue = false,
+   Flag = "InfJumpToggle",
+   Callback = function(Value)
+      InfJumpEnabled = Value
+   end,
+})
+
+
 Rayfield:Notify({
-   Title = "Loaded Successfully!",
-   Content = "Fullbright loop is now locked to engine frames.",
+   Title = "Updated Successfully!",
+   Content = "Tab 2 (Player) has been added to your script.",
    Duration = 5,
    Image = nil,
 })
